@@ -17,15 +17,15 @@ import org.jgrapht.graph.ListenableUndirectedWeightedGraph;
 public class GraphTableWindow extends javax.swing.JFrame {
     
     JGraph graphComp;
-    JGraphModelAdapter<String,DefaultWeightedEdge> jgAdapter;
-    ListenableUndirectedWeightedGraph<String,DefaultWeightedEdge> graph;
+    JGraphModelAdapter<String,WeightedEdge> jgAdapter;
+    ListenableUndirectedWeightedGraph<String,WeightedEdge> graph;
 
     /**
      * Creates new form GraphTableWindow
      */
     public GraphTableWindow() {
         initComponents();
-        graph = new ListenableUndirectedWeightedGraph<>(DefaultWeightedEdge.class);
+        graph = new ListenableUndirectedWeightedGraph<>(WeightedEdge.class);
         graph.addVertex("R1");
         graph.addVertex("R2");
         graph.addVertex("R3");
@@ -33,10 +33,9 @@ public class GraphTableWindow extends javax.swing.JFrame {
         graph.addVertex("R5");
         graph.addEdge("R1", "R2");
         graph.setEdgeWeight(graph.getEdge("R1", "R2"), 20);
-        
         jgAdapter= new JGraphModelAdapter<>(graph);
-        jgAdapter.getEdgeCell(graph.getEdge("R1", "R2"));
         graphComp = new JGraph(jgAdapter);
+        graphComp.setEditable(false);
         
         
         jScrollPane2.setViewportView(graphComp);
@@ -236,6 +235,7 @@ public class GraphTableWindow extends javax.swing.JFrame {
             }
         });
     }
+    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
