@@ -1,3 +1,9 @@
+
+import org.jgraph.JGraph;
+import org.jgrapht.ext.JGraphModelAdapter;
+import org.jgrapht.graph.DefaultWeightedEdge;
+import org.jgrapht.graph.ListenableUndirectedWeightedGraph;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -9,12 +15,31 @@
  * @author michelle
  */
 public class GraphTableWindow extends javax.swing.JFrame {
+    
+    JGraph graphComp;
+    JGraphModelAdapter<String,DefaultWeightedEdge> jgAdapter;
+    ListenableUndirectedWeightedGraph<String,DefaultWeightedEdge> graph;
 
     /**
      * Creates new form GraphTableWindow
      */
     public GraphTableWindow() {
         initComponents();
+        graph = new ListenableUndirectedWeightedGraph<>(DefaultWeightedEdge.class);
+        graph.addVertex("R1");
+        graph.addVertex("R2");
+        graph.addVertex("R3");
+        graph.addVertex("R4");
+        graph.addVertex("R5");
+        graph.addEdge("R1", "R2");
+        graph.setEdgeWeight(graph.getEdge("R1", "R2"), 20);
+        
+        jgAdapter= new JGraphModelAdapter<>(graph);
+        jgAdapter.getEdgeCell(graph.getEdge("R1", "R2"));
+        graphComp = new JGraph(jgAdapter);
+        
+        
+        jScrollPane2.setViewportView(graphComp);
     }
 
     /**
