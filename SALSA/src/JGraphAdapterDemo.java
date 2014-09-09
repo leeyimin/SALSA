@@ -129,7 +129,7 @@ public class JGraphAdapterDemo
         g.addEdge(v3, v1);
         g.addEdge(v4, v3);
 
-        // position vertices nicely within JGraph component
+        
         ////positionVertexAt(v1, 130, 40);
         //positionVertexAt(v2, 60, 200);
         //positionVertexAt(v3, 310, 230);
