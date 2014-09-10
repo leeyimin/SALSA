@@ -82,7 +82,7 @@ public class InformationNode {
         minV=prev.minV;
         lastEdgeSource=prev.lastEdgeSource;
         
-        System.out.println(""+counter);
+        
         if(counter%2==0){
             minV=-1;
             for(int i=0;i<size;i++){
@@ -96,7 +96,8 @@ public class InformationNode {
                 }
             }
             inTree[minV]=1;
-            text= vertexName[minV]+" is added to the least-cost tree and the minimum distance from "+vertexName[source]+" to "
+            text= vertexName[minV]+" has the least distance to the source node out of the nodes which are not added to the tree.\n"
+                    + "Thus, it is added to the least-cost tree and the shortest distance from "+vertexName[source]+" to "
                 +vertexName[minV]+ " is "+dist[minV]+".";
             
             allIn=true;
@@ -120,7 +121,7 @@ public class InformationNode {
                     }
                 }
             }
-            text="The distance to the different routers are updated.";
+            text="The distance to the different routers are updated based on the new node added.";
         }
         
         
@@ -128,11 +129,9 @@ public class InformationNode {
             
     public InformationNode getNext(){
         if(next!=null){
-            System.out.println("gosh");
             return next;
         }
         if(allIn){
-            System.out.println("no");
             return this;
         }
         next = new InformationNode(this);

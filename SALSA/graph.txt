@@ -1,0 +1,12 @@
+5 6
+My Router
+Your Router
+His Router
+Her Router
+Their Router
+1 2 1
+1 5 2
+1 4 4
+2 3 5
+2 4 2
+3 5 6
