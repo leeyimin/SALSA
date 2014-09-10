@@ -43,7 +43,7 @@ public class InformationNode {
         inTree=new int[size];
         for(int i=0;i<size;i++) inTree[i]=0;
         inTree[source]=1;
-        
+        //storing source and immediate neighbours in table
         dist= new int[size];
         path = new String[size];
         for(int i=0;i<size;i++){
@@ -80,10 +80,10 @@ public class InformationNode {
         lsdb=prev.lsdb;
         counter=prev.counter+1;
         minV=prev.minV;
-        lastEdgeSource=prev.lastEdgeSource;
+        lastEdgeSource=prev.lastEdgeSource;//store last node travelled so that the edge can be coloured on graph GUI if it is part of the tree
+        //initialising variables
         
-        
-        if(counter%2==0){
+        if(counter%2==0){//to find node with next shortest dist
             minV=-1;
             for(int i=0;i<size;i++){
                 if(minV==-1){
@@ -94,8 +94,8 @@ public class InformationNode {
                     if(inTree[i]==0&&dist[i]!=-1&&dist[i]<dist[minV])
                         minV=i;
                 }
-            }
-            inTree[minV]=1;
+            }//find node index of node with next shortest dist
+            inTree[minV]=1;//add to tree
             text= vertexName[minV]+" has the least distance to the source node out of the nodes which are not added to the tree.\n"
                     + "Thus, it is added to the least-cost tree and the shortest distance from "+vertexName[source]+" to "
                 +vertexName[minV]+ " is "+dist[minV]+".";
@@ -106,7 +106,7 @@ public class InformationNode {
                     allIn=false;
                     break;
                 }
-            }
+            }//if all nodes are in tree, ensure getNext() return this
             if(allIn){
                 text+=" The least-cost tree is complete.";
             }
@@ -114,13 +114,13 @@ public class InformationNode {
         else{
             for(int i=0;i<size;i++){
                 if(lsdb[minV][i]!=-1){
-                    if(dist[i]==-1 || (dist[i]>(dist[minV]+lsdb[minV][i])) ){
-                        dist[i]=dist[minV]+lsdb[minV][i];
+                    if(dist[i]==-1 || (dist[i]>(dist[minV]+lsdb[minV][i])) ){ 
+                        dist[i]=dist[minV]+lsdb[minV][i];//update
                         lastEdgeSource[i]=minV;
                         path[i]=path[minV]+" -> "+ vertexName[i];
                     }
                 }
-            }
+            }//updating distance based on the new node added last step
             text="The distance to the different routers are updated based on the new node added.";
         }
         
@@ -128,10 +128,10 @@ public class InformationNode {
     }
             
     public InformationNode getNext(){
-        if(next!=null){
+        if(next!=null){//if it is alr generated
             return next;
         }
-        if(allIn){
+        if(allIn){//no more step
             return this;
         }
         next = new InformationNode(this);
@@ -143,7 +143,7 @@ public class InformationNode {
     }
   
     
-    public String[][] getLeastCostTable(){
+    public String[][] getLeastCostTable(){//generating table data for least cost table
         String[][] result = new String[size][4];
         for(int i=0;i<size;i++){
             result[i][0]=vertexName[i];

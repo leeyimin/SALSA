@@ -33,6 +33,8 @@ import org.jgrapht.graph.ListenableUndirectedWeightedGraph;
  */
 public class GraphTableWindow extends javax.swing.JFrame {
     
+    
+    
     JGraph graphComp;
     JGraphModelAdapter<String,WeightedEdge> jgAdapter;
     ListenableUndirectedWeightedGraph<String,WeightedEdge> graph;
@@ -52,12 +54,13 @@ public class GraphTableWindow extends javax.swing.JFrame {
     public GraphTableWindow() {
         initComponents();
         
-        generateGraph();
-        makeDefaultGraph();
-        generateLSTable();
-        layoutGraph();
+        generateGraph();//prepare data structures/UIComponents required to simulate and display graph
+        makeDefaultGraph();//entering information for the default graph
+        generateLSTable();//generate and display LSDB table
+        layoutGraph();//apply layout so at least all the nodes wont lie at the same place
         
         getEdgeList();
+        //prepare a list with all edges
         
         jTable2.setEnabled(false);
         
@@ -66,8 +69,10 @@ public class GraphTableWindow extends javax.swing.JFrame {
         jComboBox1.setSelectedIndex(0);
         
         current = new InformationNode(0,vertexList.size(),graphData,vertexList.toArray(new String[vertexList.size()]));
+        //generate linked list of simulation information
         source=0;
         updateInformation();
+        //display info of current step
         this.pack();
         
     }
@@ -91,6 +96,8 @@ public class GraphTableWindow extends javax.swing.JFrame {
         DefaultGraphCell cell;
         DefaultEdge edge;
         
+        
+        //setting colour for all edges
         for(int i=0;i<edgeList.size();i+=2){
             WeightedEdge we = graph.getEdge(vertexList.get(edgeList.get(i)), vertexList.get(edgeList.get(i+1)));
             edge= jgAdapter.getEdgeCell(we);
@@ -101,6 +108,7 @@ public class GraphTableWindow extends javax.swing.JFrame {
             jgAdapter.edit(cellAttr, null, null, null);
         }
         
+        //setting colour for edges and nodes in tree
         for(int i=0;i<vertexList.size();i++){
             cell = jgAdapter.getVertexCell(vertexList.get(i));
             if(current.inTree[i]==1){
@@ -375,6 +383,7 @@ public class GraphTableWindow extends javax.swing.JFrame {
         if(returnVal==JFileChooser.APPROVE_OPTION){
             try {
                 File file=jFileChooser1.getSelectedFile();
+                //read file
                 Scanner sc = new Scanner(file);
                 generateGraph();
                 int n, en,x,y,l;
@@ -386,7 +395,7 @@ public class GraphTableWindow extends javax.swing.JFrame {
                     graph.addVertex(vertexList.get(i));
                     System.out.println(vertexList.get(i));
                 }
-                
+                //storing graph information
                 graphData= new int[n][n];
                 for(int i=0;i<n;i++){
                     for(int j=0;j<n;j++){
