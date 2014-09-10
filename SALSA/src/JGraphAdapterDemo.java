@@ -130,12 +130,11 @@ public class JGraphAdapterDemo
         g.addEdge(v4, v3);
         
         GraphConstants.setBackground(jgAdapter.getVertexCell(v1).getAttributes(), Color.RED);
-        System.out.println(jgAdapter.getEdgeCell(g.getEdge(v1, v2)).toString());
         
-        ////positionVertexAt(v1, 130, 40);
-        //positionVertexAt(v2, 60, 200);
-        //positionVertexAt(v3, 310, 230);
-        //positionVertexAt(v4, 380, 70);
+        positionVertexAt(v1, 130, 40);
+        positionVertexAt(v2, 60, 200);
+        positionVertexAt(v3, 310, 230);
+        positionVertexAt(v4, 380, 70);
 
         // that's all there is to it!...
     }

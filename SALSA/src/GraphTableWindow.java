@@ -1,6 +1,7 @@
 
 import com.jgraph.layout.*;
 import com.jgraph.layout.organic.JGraphFastOrganicLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.util.*;
 import java.util.Map;
@@ -9,6 +10,10 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import org.jgraph.JGraph;
+import org.jgraph.graph.AttributeMap;
+import org.jgraph.graph.DefaultEdge;
+import org.jgraph.graph.DefaultGraphCell;
+import org.jgraph.graph.GraphConstants;
 import org.jgrapht.ext.JGraphModelAdapter;
 import org.jgrapht.graph.ListenableUndirectedWeightedGraph;
 /*
@@ -26,9 +31,13 @@ public class GraphTableWindow extends javax.swing.JFrame {
     JGraph graphComp;
     JGraphModelAdapter<String,WeightedEdge> jgAdapter;
     ListenableUndirectedWeightedGraph<String,WeightedEdge> graph;
-    ArrayList<String> verticeList;
-    Integer[][] graphData;
+    ArrayList<String> vertexList;
+    ArrayList<Integer> edgeList;
+    int[][] graphData;
     JGraphFastOrganicLayout layout;
+    InformationNode current;
+    int source;
+    final String[] columnName = {"Router","Distance","Path","Added to Tree"};
     
     
 
@@ -45,9 +54,74 @@ public class GraphTableWindow extends javax.swing.JFrame {
         layout.run(graphFacade);
         Map nestedMap = graphFacade.createNestedMap(true, true);
         graphComp.getGraphLayoutCache().edit(nestedMap);
+        graphComp.setDisconnectable(false);
+        
+        getEdgeList();
         
         jTable2.setEnabled(false);
         jScrollPane2.setViewportView(graphComp);
+        
+        jComboBox1.setModel(new DefaultComboBoxModel(vertexList.toArray()));
+        jComboBox1.setSelectedIndex(0);
+        
+        current = new InformationNode(0,vertexList.size(),graphData,vertexList.toArray(new String[vertexList.size()]));
+        source=0;
+        updateInformation();
+        this.pack();
+        
+    }
+    
+    public void getEdgeList(){
+        edgeList=new ArrayList<>();
+        for(int i=0;i<vertexList.size();i++){
+            for(int j=i+1;j<vertexList.size();j++){
+                if(graphData[i][j]!=-1){
+                    edgeList.add(i);
+                    edgeList.add(j);
+                }
+            }
+        }
+    }
+    
+    public void updateInformation(){
+        jTable1.setModel(new DefaultTableModel(current.getLeastCostTable(),columnName));
+        jLabel1.setText(current.text);
+        
+        DefaultGraphCell cell;
+        DefaultEdge edge;
+        
+        for(int i=0;i<edgeList.size();i+=2){
+            WeightedEdge we = graph.getEdge(vertexList.get(edgeList.get(i)), vertexList.get(edgeList.get(i+1)));
+            edge= jgAdapter.getEdgeCell(we);
+            GraphConstants.setForeground(edge.getAttributes(), Color.BLACK);
+            GraphConstants.setLineColor(edge.getAttributes(), Color.BLUE);
+            AttributeMap cellAttr = new AttributeMap();
+            cellAttr.put(edge, edge.getAttributes());
+            jgAdapter.edit(cellAttr, null, null, null);
+        }
+        
+        for(int i=0;i<vertexList.size();i++){
+            cell = jgAdapter.getVertexCell(vertexList.get(i));
+            if(current.inTree[i]==1){
+                GraphConstants.setBackground(cell.getAttributes(), Color.RED);
+                
+                if(i!=source){
+                    WeightedEdge we = graph.getEdge(vertexList.get(current.lastEdgeSource[i]), vertexList.get(i));
+                    edge= jgAdapter.getEdgeCell(we);
+                    GraphConstants.setForeground(edge.getAttributes(), Color.RED);
+                    GraphConstants.setLineColor(edge.getAttributes(), Color.RED);
+                    AttributeMap cellAttr = new AttributeMap();
+                    cellAttr.put(edge, edge.getAttributes());
+                    jgAdapter.edit(cellAttr, null, null, null);
+                }
+            }
+            else{
+                GraphConstants.setBackground(jgAdapter.getVertexCell(vertexList.get(i)).getAttributes(), Color.ORANGE);
+            }
+                AttributeMap cellAttr = new AttributeMap();
+                cellAttr.put(cell, cell.getAttributes());
+                jgAdapter.edit(cellAttr, null, null, null);
+        }
     }
     
     public void generateGraph(){
@@ -56,13 +130,13 @@ public class GraphTableWindow extends javax.swing.JFrame {
         graphComp = new JGraph(jgAdapter);
         graphComp.setEditable(false);
         
-        verticeList= new ArrayList<>();
+        vertexList= new ArrayList<>();
         for(int i=0;i<10;i++){
-            verticeList.add("R"+(i+1));
+            vertexList.add("R"+(i+1));
             graph.addVertex("R"+(i+1));
         }
         
-        graphData= new Integer[10][10];
+        graphData= new int[10][10];
         for(int i=0;i<10;i++){
             for(int j=0;j<10;j++){
                 graphData[i][j]=-1;
@@ -93,24 +167,24 @@ public class GraphTableWindow extends javax.swing.JFrame {
             y=toAdd[i+1];
             l=toAdd[i+2];
             graphData[x][y]=graphData[y][x]=l;
-            we=graph.addEdge(verticeList.get(x), verticeList.get(y));
+            we=graph.addEdge(vertexList.get(x), vertexList.get(y));
             graph.setEdgeWeight(we, l);
         }
         graphComp.setEditable(false);
-        jComboBox1.setModel(new DefaultComboBoxModel(verticeList.toArray()));
+        jComboBox1.setModel(new DefaultComboBoxModel(vertexList.toArray()));
     }
     
     public void generateLSTable(){
         String[][] data = new String[graphData.length][graphData.length+1];
         for(int i=0;i<10;i++){
-            data[i][0]=verticeList.get(i);
+            data[i][0]=vertexList.get(i);
             for(int j=0;j<10;j++){
-                data[i][j+1]=graphData[i][j].toString();
+                data[i][j+1]=""+graphData[i][j];
             }
         }
-        String col[]= new String[verticeList.size()+1];
-        col[0]="Vertices";
-        for(int i=0;i<verticeList.size();i++)col[i+1]=verticeList.get(i);
+        String col[]= new String[vertexList.size()+1];
+        col[0]="Routers";
+        for(int i=0;i<vertexList.size();i++)col[i+1]=vertexList.get(i);
         jTable2.setModel(new DefaultTableModel(data,col));
        
     }
@@ -134,6 +208,7 @@ public class GraphTableWindow extends javax.swing.JFrame {
         jPanel3 = new javax.swing.JPanel();
         jButton3 = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jScrollPane2 = new javax.swing.JScrollPane();
         jScrollPane3 = new javax.swing.JScrollPane();
@@ -152,6 +227,7 @@ public class GraphTableWindow extends javax.swing.JFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        jTable1.setEnabled(false);
         jScrollPane1.setViewportView(jTable1);
 
         jButton1.setText("Choose file...");
@@ -181,7 +257,7 @@ public class GraphTableWindow extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 534, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 502, Short.MAX_VALUE)
                     .addComponent(jComboBox1, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -191,7 +267,7 @@ public class GraphTableWindow extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 147, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 144, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
@@ -199,8 +275,20 @@ public class GraphTableWindow extends javax.swing.JFrame {
         );
 
         jButton3.setText("Previous");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         jButton4.setText("Next");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setText("Information about current step");
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -209,9 +297,10 @@ public class GraphTableWindow extends javax.swing.JFrame {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jButton3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton4)
-                .addContainerGap())
+                .addComponent(jButton4))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -219,7 +308,10 @@ public class GraphTableWindow extends javax.swing.JFrame {
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton3)
                     .addComponent(jButton4))
-                .addContainerGap())
+                .addContainerGap(19, Short.MAX_VALUE))
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Graph", jScrollPane2);
@@ -244,14 +336,14 @@ public class GraphTableWindow extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jPanel3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(jTabbedPane1, javax.swing.GroupLayout.Alignment.TRAILING)
+            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 282, Short.MAX_VALUE)
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 277, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -269,7 +361,23 @@ public class GraphTableWindow extends javax.swing.JFrame {
 
     private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
         // TODO add your handling code here:
+        source = jComboBox1.getSelectedIndex();
+        current = new InformationNode(source,vertexList.size(),graphData,vertexList.toArray(new String[vertexList.size()]));
+        updateInformation();
     }//GEN-LAST:event_jComboBox1ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        // TODO add your handling code here:
+        if(current.getPrev()!=null) current=current.getPrev();
+        updateInformation();
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        if(current.getNext()!=null){
+            current=current.getNext();
+        }
+        updateInformation();
+    }//GEN-LAST:event_jButton4ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -325,6 +433,7 @@ public class GraphTableWindow extends javax.swing.JFrame {
     private javax.swing.JButton jButton4;
     private javax.swing.JComboBox jComboBox1;
     private javax.swing.JFileChooser jFileChooser1;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
